@@ -47,3 +47,11 @@ body {
   font-size: 1rem;
   margin: 0.4em 0;
 }
+
+/* src/globals.css */
+
+.editor-content h1 { font-size: 1.875rem; font-weight: 700; } /* 3xl */
+.editor-content h2 { font-size: 1.5rem; font-weight: 600; }    /* 2xl */
+.editor-content h3 { font-size: 1.25rem; font-weight: 500; }   /* xl */
+.editor-content p  { font-size: 1rem; }                        /* base */
+.editor-content mark { background-color: #fde047; }            /* highlight */

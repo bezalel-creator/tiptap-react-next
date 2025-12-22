@@ -1,90 +1,67 @@
 'use client'
 
-import { useForm, Controller } from 'react-hook-form'
-import useSWR from 'swr'
+import { useForm, FormProvider, Controller } from 'react-hook-form'
 import { useRef } from 'react'
+import Editor from '@/components/editor/Editor'
+import { usePosts } from '@/hooks/usePosts'
 
-import Editor from '@/components/Editor'
-import { fetcher } from '@/lib/fetcher'
-
-export default function Home() {
-  const { control, handleSubmit, setValue } = useForm({
-    defaultValues: { content: '' },
-  })
-
+export default function Page() {
+  const methods = useForm({ defaultValues: { content: '' } })
+  const { handleSubmit } = methods
   const editorRef = useRef(null)
-  const { data: posts, mutate } = useSWR('/api/posts', fetcher)
 
-  const onSubmit = async (data) => {
-    if (!data.content.trim()) return
+  const { addPost, posts, deletePost, isLoading } = usePosts()
 
-    await fetch('/api/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-
-    mutate()
-    setValue('content', '')
-
-    if (editorRef.current) {
-      editorRef.current.commands.setContent('')
-    }
-  }
-
-  const handleDelete = async (id) => {
-    await fetch(`/api/posts?id=${id}`, {
-      method: 'DELETE',
-    })
-    mutate()
+  const onSubmit = async ({ content }) => {
+    if (!content?.trim()) return
+    await addPost(content)
+    methods.reset()
+    editorRef.current?.commands.setContent('')
   }
 
   return (
     <main className="max-w-xl mx-auto p-4">
-      <h1 className="text-xl font-bold mb-4">
-        Mini Editor by bezalel achoonov
-      </h1>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <Controller
+            name="content"
+            control={methods.control}
+            render={({ field }) => (
+              <Editor
+               
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Controller
-          name="content"
-          control={control}
-          rules={{ required: true }}
-          render={({ field }) => (
-            <Editor
-              value={field.value}
-              onChange={field.onChange}
-              editorRef={editorRef}
-            />
-          )}
-        />
+                value={field.value}
+                onChange={field.onChange}
+                editorRef={editorRef}
+              />
+            )}
+          />
 
-        <button
-          type="submit"
-          className="bg-black text-white px-4 py-2 rounded"
-        >
-          שלח פוסט
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="bg-black text-white px-4 py-2 rounded"
+          >
+            שלח פוסט
+          </button>
+        </form>
+      </FormProvider>
 
       <hr className="my-6" />
 
-      <h2 className="font-semibold mb-2">פוסטים:</h2>
+      {isLoading && <p>טוען...</p>}
 
-      {posts?.map((post) => (
-        <div key={post.id} className="border p-2 mb-4 rounded">
-          {/* 🟢 חשוב: אותה מחלקה כמו בעורך */}
+      {posts?.map(post => (
+        <div key={post.id} className="border p-3 mb-4 rounded">
           <div
             className="editor-content overflow-x-auto whitespace-pre-wrap break-words"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
-
           <button
             type="button"
-            className="bg-red-500 text-white px-3 py-1 rounded mt-3 hover:bg-red-600"
-            onClick={() => handleDelete(post.id)}
+            className="bg-red-600 text-white px-4 py-2 rounded-md mt-3 hover:bg-red-700 transition-colors duration-200 font-semibold"
+            onClick={() => deletePost(post.id)}
           >
-            מחק פוסט
+            ❌ מחק פוסט
           </button>
         </div>
       ))}

@@ -1,22 +1,32 @@
+// src/app/api/posts/route.js
 let posts = []
 
 export async function GET() {
-  return Response.json(posts)
+  return new Response(JSON.stringify(posts), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 export async function POST(req) {
   const body = await req.json()
+  if (!body.content || !body.content.trim()) {
+    return new Response(JSON.stringify({ success: false, error: 'Empty content' }), { status: 400 })
+  }
+
   posts.push({ id: Date.now(), content: body.content })
-  return Response.json({ success: true })
+
+  return new Response(JSON.stringify({ success: true }), { status: 201 })
 }
 
 export async function DELETE(req) {
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
   if (!id) {
-    return Response.json({ success: false, error: 'Missing id' })
+    return new Response(JSON.stringify({ success: false, error: 'Missing id' }), { status: 400 })
   }
 
-  posts = posts.filter(post => post.id.toString() !== id)
-  return Response.json({ success: true })
+  posts = posts.filter(p => p.id.toString() !== id)
+
+  return new Response(JSON.stringify({ success: true }), { status: 200 })
 }
