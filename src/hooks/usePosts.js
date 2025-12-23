@@ -10,47 +10,62 @@ export function usePosts() {
   // posts תמיד array
   const posts = data || []
 
-  // פונקציה להוספת פוסט
-  const addPost = async (content) => {
-    if (!content || !content.trim()) return
+const addPost = async (content) => {
+  if (!content || !content.trim()) return
 
-    // אפשר להוסיף optimistic update
-    const tempPost = { id: Date.now(), content }
-    mutate([tempPost, ...posts], false) // עדכון מיידי ב-client
-
-    // שליחה לשרת
-    const res = await fetch('/api/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content }),
-    })
-
-    if (!res.ok) {
-      // במקרה של שגיאה – מחזיר את המצב המקורי
-      mutate(posts, false)
-      throw new Error('Failed to add post')
-    }
-
-    // שליפה מחדש כדי לסנכרן עם השרת
-    mutate()
+  const newPost = {
+    id: Date.now(), // זמני
+    content,
   }
 
-  // פונקציה למחיקת פוסט
-  const deletePost = async (id) => {
-    // עדכון מיידי ב-client
-    mutate(posts.filter(p => p.id !== id), false)
+  await mutate(
+    async (currentPosts = []) => {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      })
 
-    // שליחה לשרת
-    const res = await fetch(`/api/posts?id=${id}`, { method: 'DELETE' })
-    if (!res.ok) {
-      // במקרה של שגיאה – מחזיר את המצב המקורי
-      mutate()
-      throw new Error('Failed to delete post')
+      if (!res.ok) {
+        throw new Error('Failed to add post')
+      }
+
+      const savedPost = await res.json()
+
+      // מחזירים את הנתונים האמיתיים מהשרת
+      return [savedPost, ...currentPosts]
+    },
+    {
+      optimisticData: (current = []) => [newPost, ...current],
+      rollbackOnError: true,
+      revalidate: false,
     }
+  )
+}
 
-    // שליפה מחדש
-    mutate()
-  }
+const deletePost = async (id) => {
+  await mutate(
+    async (currentPosts = []) => {
+      const res = await fetch(`/api/posts?id=${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to delete post')
+      }
+
+      return currentPosts.filter(post => post.id !== id)
+    },
+    {
+      optimisticData: (current = []) =>
+        current.filter(post => post.id !== id),
+      rollbackOnError: true,
+      revalidate: false,
+    }
+  )
+}
+
+
 
   return {
     posts,
