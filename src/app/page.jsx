@@ -13,13 +13,40 @@ export default function Page() {
   const { addPost, posts, deletePost, isLoading } = usePosts()
 
 
-  const onSubmit = async () => {
+
+const onSubmit = async () => {
   const content = editorRef.current?.getHTML() || ''
+
   if (!content?.trim()) return
-  await addPost(content)
-  methods.reset()
-  editorRef.current?.commands.setContent('')
+
+  try {
+
+    await addPost(content)
+    
+    
+    methods.reset()
+    editorRef.current?.commands.setContent('')
+  } catch (error) {
+    console.error('שגיאה בשליחת הפוסט:', error)
+
+   
+    let message = 'אירעה שגיאה בשליחת הפוסט. אנא נסה שוב.'
+    if (error?.response?.status) {
+      
+      if (error.response.status >= 500) {
+        message = 'שגיאת שרת. נסה שוב מאוחר יותר.'
+      } else if (error.response.status >= 400) {
+        message = 'שגיאה בבקשה. בדוק את הנתונים ונסה שוב.'
+      }
+    } else if (error instanceof TypeError) {
+      
+      message = 'בעיה ברשת. בדוק את החיבור ונסה שוב.'
+    }
+
+    alert(message)
+  }
 }
+
 
 
   return (
