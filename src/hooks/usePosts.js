@@ -6,7 +6,7 @@ export function usePosts() {
   const { data, mutate, error, isLoading } = useSWR('/api/posts', fetcher, {
     fallbackData: [],
   })
-
+console.log('SWR posts data:', data)
   // posts תמיד array
   const posts = data || []
 

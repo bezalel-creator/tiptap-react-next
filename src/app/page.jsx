@@ -5,6 +5,22 @@ import { useRef } from 'react'
 import Editor from '@/components/editor/Editor'
 import { usePosts } from '@/hooks/usePosts'
 import { sanitize } from '@/lib/sanitizeHtml'
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+
+// קומפוננטה לקריאה בלבד של פוסט
+function ReadOnlyPost({ content }) {
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content,
+    editable: false, // מצב קריאה בלבד
+    immediatelyRender: false,
+  })
+
+  if (!editor) return null
+
+  return <EditorContent editor={editor} />
+}
 
 export default function Page() {
   const methods = useForm({ defaultValues: { content: '' } })
@@ -13,44 +29,40 @@ export default function Page() {
 
   const { addPost, posts, deletePost, isLoading } = usePosts()
 
+  const onSubmit = async () => {
+    // שולף את התוכן מהעורך
+    const content = editorRef.current?.getHTML() || ''
 
+    if (!content?.trim()) return
 
-const onSubmit = async () => {
-  // שולף את התוכן מהעורך
-  const content = editorRef.current?.getHTML() || ''
+    // מנקה את התוכן כדי למנוע HTML מזיק
+    const safeContent = sanitize(content)
 
-  // אם אין תוכן, מחזיר בלי לשלוח
-  if (!content?.trim()) return
+    try {
+      // שולח את התוכן המאובטח לשרת
+      await addPost(safeContent)
 
-  // מנקה את התוכן כדי למנוע HTML מזיק
-  const safeContent = sanitize(content)
+      // איפוס טופס ועורך
+      methods.reset()
+      editorRef.current?.commands.setContent('')
+    } catch (error) {
+      console.error('שגיאה בשליחת הפוסט:', error)
 
-  try {
-    // שולח את התוכן המאובטח לשרת
-    await addPost(safeContent)
-
-    // איפוס טופס ועורך
-    methods.reset()
-    editorRef.current?.commands.setContent('')
-  } catch (error) {
-    console.error('שגיאה בשליחת הפוסט:', error)
-
-    let message = 'אירעה שגיאה בשליחת הפוסט. אנא נסה שוב.'
-    
-    if (error?.response?.status) {
-      if (error.response.status >= 500) {
-        message = 'שגיאת שרת. נסה שוב מאוחר יותר.'
-      } else if (error.response.status >= 400) {
-        message = 'שגיאה בבקשה. בדוק את הנתונים ונסה שוב.'
+      let message = 'אירעה שגיאה בשליחת הפוסט. אנא נסה שוב.'
+      
+      if (error?.response?.status) {
+        if (error.response.status >= 500) {
+          message = 'שגיאת שרת. נסה שוב מאוחר יותר.'
+        } else if (error.response.status >= 400) {
+          message = 'שגיאה בבקשה. בדוק את הנתונים ונסה שוב.'
+        }
+      } else if (error instanceof TypeError) {
+        message = 'בעיה ברשת. בדוק את החיבור ונסה שוב.'
       }
-    } else if (error instanceof TypeError) {
-      message = 'בעיה ברשת. בדוק את החיבור ונסה שוב.'
+
+      alert(message)
     }
-
-    alert(message)
   }
-}
-
 
   return (
     <main className="max-w-xl mx-auto p-4">
@@ -61,8 +73,8 @@ const onSubmit = async () => {
             control={methods.control}
             render={({ field }) => (
               <Editor
-                value={field.value || ''}           // ⚠️ ברירת מחדל למניעת undefined
-                onChange={(html) => field.onChange(html)}  // ⚠️ רק כאן מעדכן את value
+                value={field.value || ''}
+                onChange={(html) => field.onChange(html)}
                 editorRef={editorRef}
               />
             )}
@@ -83,10 +95,8 @@ const onSubmit = async () => {
 
       {posts?.map(post => (
         <div key={post.id} className="border p-3 mb-4 rounded">
-          <div
-            className="editor-content overflow-x-auto whitespace-pre-wrap break-words"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <ReadOnlyPost content={post.content} />
+
           <button
             type="button"
             className="bg-red-600 text-white px-4 py-2 rounded-md mt-3 hover:bg-red-700 transition-colors duration-200 font-semibold"
