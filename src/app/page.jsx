@@ -4,6 +4,7 @@ import { useForm, FormProvider, Controller } from 'react-hook-form'
 import { useRef } from 'react'
 import Editor from '@/components/editor/Editor'
 import { usePosts } from '@/hooks/usePosts'
+import { sanitize } from '@/lib/sanitizeHtml'
 
 export default function Page() {
   const methods = useForm({ defaultValues: { content: '' } })
@@ -15,38 +16,40 @@ export default function Page() {
 
 
 const onSubmit = async () => {
+  // שולף את התוכן מהעורך
   const content = editorRef.current?.getHTML() || ''
 
+  // אם אין תוכן, מחזיר בלי לשלוח
   if (!content?.trim()) return
 
-  try {
+  // מנקה את התוכן כדי למנוע HTML מזיק
+  const safeContent = sanitize(content)
 
-    await addPost(content)
-    
-    
+  try {
+    // שולח את התוכן המאובטח לשרת
+    await addPost(safeContent)
+
+    // איפוס טופס ועורך
     methods.reset()
     editorRef.current?.commands.setContent('')
   } catch (error) {
     console.error('שגיאה בשליחת הפוסט:', error)
 
-   
     let message = 'אירעה שגיאה בשליחת הפוסט. אנא נסה שוב.'
+    
     if (error?.response?.status) {
-      
       if (error.response.status >= 500) {
         message = 'שגיאת שרת. נסה שוב מאוחר יותר.'
       } else if (error.response.status >= 400) {
         message = 'שגיאה בבקשה. בדוק את הנתונים ונסה שוב.'
       }
     } else if (error instanceof TypeError) {
-      
       message = 'בעיה ברשת. בדוק את החיבור ונסה שוב.'
     }
 
     alert(message)
   }
 }
-
 
 
   return (
