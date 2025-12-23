@@ -55,3 +55,46 @@ body {
 .editor-content h3 { font-size: 1.25rem; font-weight: 500; }   /* xl */
 .editor-content p  { font-size: 1rem; }                        /* base */
 .editor-content mark { background-color: #fde047; }            /* highlight */
+
+
+
+.tiptap-editor h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin-top: 0.67em;
+  margin-bottom: 0.67em;
+}
+
+.tiptap-editor h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 0.83em;
+  margin-bottom: 0.83em;
+}
+
+.tiptap-editor h3 {
+  font-size: 1.17em;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.tiptap-editor p {
+  margin-bottom: 1em;
+}
+
+.tiptap-editor strong {
+  font-weight: bold;
+}
+
+.tiptap-editor em {
+  font-style: italic;
+}
+
+.tiptap-editor u {
+  text-decoration: underline;
+}
+
+.tiptap-editor s {
+  text-decoration: line-through;
+}

@@ -1,34 +1,23 @@
-import { Controller, useFormContext } from 'react-hook-form'
+
+'use client'
+
+import { EditorContent } from '@tiptap/react'
 import { useEditorLogic } from './useEditor'
 import EditorToolbar from './EditorToolbar'
-import { EditorContent } from '@tiptap/react'
 
-export default function Editor({ name }) {
-  const { control } = useFormContext()
+export default function Editor({ editorRef }) {
+  const { editor, state } = useEditorLogic({ value: '' })
 
-  if (!name) return null
+  if (!editor) return null
+
+  if (editorRef) editorRef.current = editor
 
   return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field }) => {
-        const { editor, state } = useEditorLogic({
-          value: field.value || '',        // ⚠️ ערך ברירת מחדל
-          onChange: field.onChange,        // ⚠️ חייב לקבל string
-        })
-
-        if (!editor) return null
-
-        return (
-          <div className="border rounded">
-            <EditorToolbar editor={editor} state={state} />
-            <div className="p-3 min-h-[150px]">
-              <EditorContent editor={editor} />
-            </div>
-          </div>
-        )
-      }}
-    />
+    <div className="border rounded">
+      <EditorToolbar editor={editor} state={state} />
+      <div className="p-3 min-h-[150px]">
+        <EditorContent editor={editor} />
+      </div>
+    </div>
   )
 }

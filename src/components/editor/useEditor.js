@@ -1,3 +1,5 @@
+'use client'
+
 import { useEditor, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -5,8 +7,7 @@ import Highlight from '@tiptap/extension-highlight'
 import { TextStyle } from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
 
-export function useEditorLogic({ value = '', onChange }) { // ⚠️ ערך ברירת מחדל
-
+export function useEditorLogic({ value = '' }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -17,25 +18,26 @@ export function useEditorLogic({ value = '', onChange }) { // ⚠️ ערך בר
       Color,
       Highlight.configure({ multicolor: true }),
     ],
-    content: value || '',   // ⚠️ תמיד string
-    onUpdate: ({ editor }) => {
-      if (onChange && typeof onChange === 'function') {
-        onChange(editor.getHTML())
-      }
+    content: value,
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: 'focus:outline-none tiptap-editor',
+      },
     },
   })
 
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
-      bold: editor?.isActive('bold') || false,
-      italic: editor?.isActive('italic') || false,
-      underline: editor?.isActive('underline') || false,
-      strike: editor?.isActive('strike') || false,
-      h1: editor?.isActive('heading', { level: 1 }) || false,
-      h2: editor?.isActive('heading', { level: 2 }) || false,
-      h3: editor?.isActive('heading', { level: 3 }) || false,
-      highlight: editor?.isActive('highlight') || false,
+      bold: editor?.isActive('bold'),
+      italic: editor?.isActive('italic'),
+      underline: editor?.isActive('underline'),
+      strike: editor?.isActive('strike'),
+      h1: editor?.isActive('heading', { level: 1 }),
+      h2: editor?.isActive('heading', { level: 2 }),
+      h3: editor?.isActive('heading', { level: 3 }),
+      highlight: editor?.isActive('highlight', { color: '#fde047' }),
     }),
   })
 

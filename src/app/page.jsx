@@ -12,12 +12,15 @@ export default function Page() {
 
   const { addPost, posts, deletePost, isLoading } = usePosts()
 
-  const onSubmit = async ({ content }) => {
-    if (!content?.trim()) return
-    await addPost(content)
-    methods.reset()
-    editorRef.current?.commands.setContent('')
-  }
+
+  const onSubmit = async () => {
+  const content = editorRef.current?.getHTML() || ''
+  if (!content?.trim()) return
+  await addPost(content)
+  methods.reset()
+  editorRef.current?.commands.setContent('')
+}
+
 
   return (
     <main className="max-w-xl mx-auto p-4">
@@ -28,10 +31,8 @@ export default function Page() {
             control={methods.control}
             render={({ field }) => (
               <Editor
-               
-
-                value={field.value}
-                onChange={field.onChange}
+                value={field.value || ''}           // ⚠️ ברירת מחדל למניעת undefined
+                onChange={(html) => field.onChange(html)}  // ⚠️ רק כאן מעדכן את value
                 editorRef={editorRef}
               />
             )}
