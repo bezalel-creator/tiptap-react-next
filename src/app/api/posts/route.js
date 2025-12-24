@@ -10,13 +10,23 @@ export async function GET() {
 
 export async function POST(req) {
   const body = await req.json()
+
   if (!body.content || !body.content.trim()) {
-    return new Response(JSON.stringify({ success: false, error: 'Empty content' }), { status: 400 })
+    return Response.json(
+      { error: 'Empty content' },
+      { status: 400 }
+    )
   }
 
-  posts.push({ id: Date.now(), content: body.content })
+  const newPost = {
+    id: Date.now(), 
+    content: body.content,
+  }
 
-  return new Response(JSON.stringify({ success: true }), { status: 201 })
+  posts.push(newPost)
+
+
+  return Response.json(newPost, { status: 201 })
 }
 
 export async function DELETE(req) {

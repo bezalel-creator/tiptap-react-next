@@ -2,25 +2,11 @@
 
 import { useForm, FormProvider, Controller } from 'react-hook-form'
 import { useRef } from 'react'
+
 import Editor from '@/components/editor/Editor'
+import ReadOnlyPost from '@/components/ReadOnlyPost'
 import { usePosts } from '@/hooks/usePosts'
 import { sanitize } from '@/lib/sanitizeHtml'
-import { EditorContent, useEditor } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-
-// קומפוננטה לקריאה בלבד של פוסט
-function ReadOnlyPost({ content }) {
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content,
-    editable: false, // מצב קריאה בלבד
-    immediatelyRender: false,
-  })
-
-  if (!editor) return null
-
-  return <EditorContent editor={editor} />
-}
 
 export default function Page() {
   const methods = useForm({ defaultValues: { content: '' } })
@@ -30,36 +16,21 @@ export default function Page() {
   const { addPost, posts, deletePost, isLoading } = usePosts()
 
   const onSubmit = async () => {
-    // שולף את התוכן מהעורך
     const content = editorRef.current?.getHTML() || ''
+    if (!content.trim()) return
 
-    if (!content?.trim()) return
-
-    // מנקה את התוכן כדי למנוע HTML מזיק
     const safeContent = sanitize(content)
 
     try {
-      // שולח את התוכן המאובטח לשרת
       await addPost(safeContent)
-
-      // איפוס טופס ועורך
       methods.reset()
       editorRef.current?.commands.setContent('')
     } catch (error) {
       console.error('שגיאה בשליחת הפוסט:', error)
-
       let message = 'אירעה שגיאה בשליחת הפוסט. אנא נסה שוב.'
-      
-      if (error?.response?.status) {
-        if (error.response.status >= 500) {
-          message = 'שגיאת שרת. נסה שוב מאוחר יותר.'
-        } else if (error.response.status >= 400) {
-          message = 'שגיאה בבקשה. בדוק את הנתונים ונסה שוב.'
-        }
-      } else if (error instanceof TypeError) {
-        message = 'בעיה ברשת. בדוק את החיבור ונסה שוב.'
-      }
-
+      if (error?.response?.status >= 500) message = 'שגיאת שרת. נסה שוב מאוחר יותר.'
+      else if (error?.response?.status >= 400) message = 'שגיאה בבקשה. בדוק את הנתונים ונסה שוב.'
+      else if (error instanceof TypeError) message = 'בעיה ברשת. בדוק את החיבור ונסה שוב.'
       alert(message)
     }
   }
@@ -74,16 +45,13 @@ export default function Page() {
             render={({ field }) => (
               <Editor
                 value={field.value || ''}
-                onChange={(html) => field.onChange(html)}
+                onChange={field.onChange}
                 editorRef={editorRef}
               />
             )}
           />
 
-          <button
-            type="submit"
-            className="bg-black text-white px-4 py-2 rounded"
-          >
+          <button type="submit" className="bg-black text-white px-4 py-2 rounded">
             שלח פוסט
           </button>
         </form>
@@ -94,12 +62,12 @@ export default function Page() {
       {isLoading && <p>טוען...</p>}
 
       {posts?.map(post => (
-        <div key={post.id} className="border p-3 mb-4 rounded">
+        <div key={post.id} className="tiptap-content border p-3 mb-4 rounded">
           <ReadOnlyPost content={post.content} />
 
           <button
             type="button"
-            className="bg-red-600 text-white px-4 py-2 rounded-md mt-3 hover:bg-red-700 transition-colors duration-200 font-semibold"
+            className="bg-red-600 text-white px-4 py-2 rounded-md mt-3 hover:bg-red-700"
             onClick={() => deletePost(post.id)}
           >
             ❌ מחק פוסט

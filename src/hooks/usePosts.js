@@ -2,19 +2,19 @@ import useSWR from 'swr'
 import { fetcher } from '@/lib/fetcher'
 
 export function usePosts() {
-  // SWR עם fallbackData כדי שתמיד יהיה array
+  
   const { data, mutate, error, isLoading } = useSWR('/api/posts', fetcher, {
     fallbackData: [],
   })
 console.log('SWR posts data:', data)
-  // posts תמיד array
+
   const posts = data || []
 
 const addPost = async (content) => {
   if (!content || !content.trim()) return
 
   const newPost = {
-    id: Date.now(), // זמני
+    id: Date.now(), 
     content,
   }
 
@@ -32,7 +32,7 @@ const addPost = async (content) => {
 
       const savedPost = await res.json()
 
-      // מחזירים את הנתונים האמיתיים מהשרת
+      
       return [savedPost, ...currentPosts]
     },
     {
