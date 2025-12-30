@@ -15,11 +15,11 @@ export function usePosts() {
     return arg
   }
 
-  const { trigger: triggerAddPost } = useSWRMutation('/api/posts', addPostFn, {
+  const { trigger: triggerAddPost, isMutating: isAdding } = useSWRMutation('/api/posts', addPostFn, {
     onSuccess: () => mutate(),
   })
 
-  const { trigger: triggerDeletePost } = useSWRMutation('/api/posts', deletePostFn, {
+  const { trigger: triggerDeletePost, isMutating: isDeleting } = useSWRMutation('/api/posts', deletePostFn, {
     onSuccess: () => mutate(),
   })
 
@@ -29,6 +29,7 @@ export function usePosts() {
     error,
     triggerAddPost,
     triggerDeletePost,
+    isMutating: isAdding || isDeleting,
   }
 }
 

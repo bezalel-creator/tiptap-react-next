@@ -11,7 +11,7 @@ export default function Page() {
   const methods = useForm({ defaultValues: { content: '' } })
   const { handleSubmit, control, reset } = methods
 
-  const { posts, isLoading, error, triggerAddPost, triggerDeletePost, refreshPosts } = usePosts()
+  const { posts, isLoading, error, triggerAddPost, triggerDeletePost, isMutating } = usePosts()
   const [submitError, setSubmitError] = useState(null)
 
   const onSubmit = async (data) => {
@@ -22,7 +22,6 @@ export default function Page() {
 
     try {
       await triggerAddPost(safeContent)
-      if (refreshPosts) await refreshPosts()
       reset({ content: '' })
     } catch (err) {
       console.error(err)
@@ -31,12 +30,12 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-blue-600 flex flex-col items-center p-6 space-y-6">
-      {/* ⭐ כותרת */}
-      <h1 className="text-3xl font-bold text-white drop-shadow-lg">MINI EDITOR BY BEZALEL</h1>
+    <main className="min-h-screen bg-blue-600 flex flex-col items-center p-4 sm:p-6 space-y-6">
+      <h1 className="text-3xl sm:text-4xl font-bold text-white drop-shadow-lg text-center">
+        MINI EDITOR BY BEZALEL
+      </h1>
 
-      {/* ⭐ טופס העורך */}
-      <div className="w-full max-w-5xl bg-blue-50 p-6 rounded-xl shadow-xl">
+      <div className="w-full max-w-5xl bg-blue-50 p-4 sm:p-6 rounded-xl shadow-xl">
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Controller
@@ -46,19 +45,20 @@ export default function Page() {
             />
             <button
               type="submit"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold shadow-md"
+              disabled={isMutating}
+              className={`w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow-md transition
+                ${isMutating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
             >
-              שלח פוסט
+              {isMutating ? 'שולח...' : 'שלח פוסט'}
             </button>
           </form>
         </FormProvider>
         {submitError && <p className="text-red-600 mt-2">{submitError}</p>}
       </div>
 
-      {/* ⭐ רשימת הפוסטים */}
       <div className="w-full max-w-5xl space-y-4">
-        {isLoading && <p className="text-white">טוען...</p>}
-        {error && <p className="text-red-600">שגיאה בטעינת הפוסטים</p>}
+        {isLoading && <p className="text-white text-center">טוען פוסטים...</p>}
+        {error && <p className="text-red-600 text-center">שגיאה בטעינת הפוסטים</p>}
 
         {posts?.map((post) => (
           <div
@@ -68,7 +68,9 @@ export default function Page() {
             <ReadOnlyPost content={post.content} />
             <button
               type="button"
-              className="bg-red-600 text-white px-4 py-2 rounded-md mt-3 hover:bg-red-700 transition"
+              disabled={isMutating}
+              className={`bg-red-600 text-white px-4 py-2 rounded-md mt-3 transition
+                ${isMutating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
               onClick={() => triggerDeletePost(post.id)}
             >
               ❌ מחק פוסט

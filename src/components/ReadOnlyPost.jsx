@@ -1,7 +1,7 @@
 'use client'
 
 import { EditorContent } from '@tiptap/react'
-import { useEditorLogic } from './editor/useEditor'  // ✅ נתיב מתוקן
+import { useEditorLogic } from './editor/useEditor'
 
 export default function ReadOnlyPost({ content }) {
   const { editor } = useEditorLogic({
