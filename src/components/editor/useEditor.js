@@ -6,6 +6,7 @@ import Underline from '@tiptap/extension-underline'
 import Highlight from '@tiptap/extension-highlight'
 import { TextStyle } from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
+import TextAlign from '@tiptap/extension-text-align'
 
 export function useEditorLogic({ value = '', editable = true, onChange }) {
   const editor = useEditor({
@@ -17,19 +18,21 @@ export function useEditorLogic({ value = '', editable = true, onChange }) {
       TextStyle,
       Color,
       Highlight.configure({ multicolor: true }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
     ],
     content: value,
     editable,
-    immediatelyRender: false, // חובה ב־Next.js
+    immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: 'focus:outline-none tiptap-editor',
+        class:
+          'tiptap-editor focus:outline-none min-h-[200px]',
       },
     },
     onUpdate({ editor }) {
-      if (onChange) {
-        onChange(editor.getHTML())
-      }
+      onChange?.(editor.getHTML())
     },
   })
 
@@ -43,6 +46,11 @@ export function useEditorLogic({ value = '', editable = true, onChange }) {
       h1: editor?.isActive('heading', { level: 1 }),
       h2: editor?.isActive('heading', { level: 2 }),
       h3: editor?.isActive('heading', { level: 3 }),
+      bulletList: editor?.isActive('bulletList'),
+      orderedList: editor?.isActive('orderedList'),
+      alignLeft: editor?.isActive({ textAlign: 'left' }),
+      alignCenter: editor?.isActive({ textAlign: 'center' }),
+      alignRight: editor?.isActive({ textAlign: 'right' }),
       highlight: editor?.isActive('highlight'),
     }),
   })

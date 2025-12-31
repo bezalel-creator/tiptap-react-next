@@ -11,6 +11,11 @@ export function sanitize(html) {
       'h1', 'h2', 'h3',
       'span',
       'mark',
+      'ul',
+'ol',
+'li',
+
+
     ],
     ALLOWED_ATTR: ['style'],
     ALLOWED_CSS_PROPERTIES: [
